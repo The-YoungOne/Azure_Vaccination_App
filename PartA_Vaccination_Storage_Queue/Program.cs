@@ -1,9 +1,10 @@
 ﻿using Azure.Storage.Queues;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using System.Text;
 
 Console.ForegroundColor= ConsoleColor.Green;
-Console.WriteLine("******Welcome to the Queue Storage Function App******");
+Console.WriteLine("Welcome to the Queue Storage Function App");
 
 //connection string to storage queue
 string connection = "DefaultEndpointsProtocol=https;AccountName=saluciany;AccountKey=mWm/9/G4F04OQX/G/XJWTqbx3o92aYlE5uxA1i3AV/s6GYdEpj36S3wDNgCvjQ2kwzcOKRofxPhB+AStH6CW5w==;EndpointSuffix=core.windows.net";
@@ -32,17 +33,24 @@ string[] vaccinationCenters = { "La Lucia Clinic","Kingsburg Clinic", "Adams Cli
 int range = 5 * 365; //5 years          
 
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"\nAdding to: {queueName}");
+Console.WriteLine($"\nAdding Messages to {queueName}");
 
 //sends message to queue
 for (int i = 0; i < 5; i++)
 {
-    String id = generator.Next(0, 999999).ToString("D13");
+    String id = generator.Next(0, 1000000).ToString("D6") + "" + generator.Next(0, 1000000).ToString("D7");
     DateTime date = DateTime.Today.AddDays(-generator.Next(range));
     string serialNumber = "" + generator.Next(100000, 1000000);
 
-    await client.SendMessageAsync($"{id}:{vaccinationCenters[i]}:{date}:{serialNumber}");
+    string data = $"{id}:{vaccinationCenters[i]}:{date.ToShortDateString()}:{serialNumber}";
+    byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+    string base64Data = Convert.ToBase64String(dataBytes);
+
+    await client.SendMessageAsync(base64Data);
 }
 
 Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine($"\nMessages added to {queueName}");
+
+Console.ForegroundColor = ConsoleColor.DarkGreen;
+Console.WriteLine("\nApplication Execution Complete.");

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PartB_Vaccination_Queue_Function": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7053",
+      "launchBrowser": false
+    }
+  }
+}
