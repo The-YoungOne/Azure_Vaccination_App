@@ -23,6 +23,8 @@ namespace PartB_Vaccination_Queue_Function
                 string[] split = myQueueItem.Split(':'); 
                 string id = split[0];
                 string vaccineCenter = split[1];
+
+                //add tryparse
                 string date = split[2].ToString();
                 int serialNumber = int.Parse(split[3]);
 

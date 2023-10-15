@@ -35,22 +35,29 @@ int range = 5 * 365; //5 years
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine($"\nAdding Messages to {queueName}");
 
-//sends message to queue
-for (int i = 0; i < 5; i++)
+try
 {
-    String id = generator.Next(0, 1000000).ToString("D6") + "" + generator.Next(0, 1000000).ToString("D7");
-    DateTime date = DateTime.Today.AddDays(-generator.Next(range));
-    string serialNumber = "" + generator.Next(100000, 1000000);
+    //sends message to queue
+    for (int i = 0; i < 5; i++)
+    {
+        String id = generator.Next(0, 1000000).ToString("D6") + "" + generator.Next(0, 1000000).ToString("D7");
+        DateTime date = DateTime.Today.AddDays(-generator.Next(range));
+        string serialNumber = "" + generator.Next(100000, 1000000);
 
-    string data = $"{id}:{vaccinationCenters[i]}:{date.ToShortDateString()}:{serialNumber}";
-    byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-    string base64Data = Convert.ToBase64String(dataBytes);
+        string data = $"{id}:{vaccinationCenters[i]}:{date.ToShortDateString()}:{serialNumber}";
+        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+        string base64Data = Convert.ToBase64String(dataBytes);
 
-    await client.SendMessageAsync(base64Data);
+        await client.SendMessageAsync(base64Data);
+    }
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine($"\nMessages added to {queueName}");
+
+    Console.ForegroundColor = ConsoleColor.DarkGreen;
+    Console.WriteLine("\nApplication Execution Complete.");
 }
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine($"\nMessages added to {queueName}");
-
-Console.ForegroundColor = ConsoleColor.DarkGreen;
-Console.WriteLine("\nApplication Execution Complete.");
+catch (Exception ex)
+{
+    Console.WriteLine($"Error trying to insert messages into queue: {ex}");
+}
