@@ -44,7 +44,16 @@ try
         DateTime date = DateTime.Today.AddDays(-generator.Next(range));
         string serialNumber = "" + generator.Next(100000, 1000000);
 
-        string data = $"{id}:{vaccinationCenters[i]}:{date.ToShortDateString()}:{serialNumber}";
+        string data;
+        if (i % 2 == 0)
+        {
+            data = $"{id}:{vaccinationCenters[i]}:{date.ToShortDateString()}:{serialNumber}";
+        }
+        else
+        {
+            data = $"{serialNumber}:{date.ToShortDateString()}:{vaccinationCenters[i]}:{id}";
+        }
+
         byte[] dataBytes = Encoding.UTF8.GetBytes(data);
         string base64Data = Convert.ToBase64String(dataBytes);
 

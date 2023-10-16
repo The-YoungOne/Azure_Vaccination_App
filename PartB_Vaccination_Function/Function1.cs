@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace PartB_Vaccination_Queue_Function
 {
@@ -15,6 +16,15 @@ namespace PartB_Vaccination_Queue_Function
         public Function1(IConfiguration config)
         {
             _config = config;
+        }
+
+        public class Values
+        {
+            public string id { get; set; }
+            public string vaccineCenter { get; set; }
+            public string date { get; set; }
+            public int serialNumber { get; set; }
+
         }
 
         [FunctionName("Function1")]
@@ -37,13 +47,30 @@ namespace PartB_Vaccination_Queue_Function
                 Console.WriteLine("\nProcessing Message(s) in Queue...");
                 try
                 {
-                    string[] split = myQueueItem.Split(':');
-                    string id = split[0];
-                    string vaccineCenter = split[1];
+                    Values obj = new Values();
+                    Console.WriteLine(myQueueItem);
 
-                    //add tryparse
-                    string date = split[2].ToString();
-                    int serialNumber = int.Parse(split[3]);
+                    string[] split = myQueueItem.Split(':');
+                    Console.WriteLine(split[0].Length);
+                    if (split[0].Length == 13)
+                    {
+                        obj.id = split[0];
+                        obj.vaccineCenter = split[1];
+                        obj.date = split[2];
+                        obj.serialNumber = int.Parse(split[3]);
+                    }
+                    else if (split[0].Length == 6)
+                    {
+                        obj.serialNumber = int.Parse(split[0]);
+                        obj.date = split[1];
+                        obj.vaccineCenter = split[2];
+                        obj.id = split[3];
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        log.LogError($"Invaild Format: {myQueueItem}");
+                    }
 
                     log.LogInformation("Processing message queue...");
 
@@ -53,16 +80,16 @@ namespace PartB_Vaccination_Queue_Function
                         using (SqlCommand com = con.CreateCommand())
                         {
                             com.CommandText = "INSERT INTO VACCINATOR (ID, Center, Date, Serial_Number) VALUES (@ID, @Center, @Date, @Serial_Number) ";
-                            com.Parameters.AddWithValue("ID", id);
-                            com.Parameters.AddWithValue("Center", vaccineCenter);
-                            com.Parameters.AddWithValue("Date", date);
-                            com.Parameters.AddWithValue("Serial_Number", serialNumber);
+                            com.Parameters.AddWithValue("ID", obj.id);
+                            com.Parameters.AddWithValue("Center", obj.vaccineCenter);
+                            com.Parameters.AddWithValue("Date", obj.date);
+                            com.Parameters.AddWithValue("Serial_Number", obj.serialNumber);
                             com.ExecuteNonQuery();
                         }
                     }
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.WriteLine($"\nMessage queue stored sucessfully. Information stored:\nId: {id}\nVaccination Center: {vaccineCenter}\nDate: {date}: Serial Number: {serialNumber}");
-                    log.LogInformation($"Message queue stored sucessfully. Information stored:\nId: {id}\nVaccination Center: {vaccineCenter}\nDate: {date}: Serial Number: {serialNumber}");
+                    Console.WriteLine($"\nMessage queue stored sucessfully. Information stored:\nId: {obj.id}\nVaccination Center: {obj.vaccineCenter}\nDate: {obj.date}: Serial Number: {obj.serialNumber}");
+                    log.LogInformation($"Message queue stored sucessfully. Information stored:\nId: {obj.id}\nVaccination Center: {obj.vaccineCenter}\nDate: {obj.date}: Serial Number: {obj.serialNumber}");
                 }
                 catch (Exception ex)
                 {
